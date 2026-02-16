@@ -9,12 +9,15 @@ Usage:
     python3 scripts/generate_distances.py
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
 import zipfile
 import urllib.request
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
