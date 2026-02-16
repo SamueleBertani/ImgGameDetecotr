@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sketch Detector</title>
+  </head>
+  <body class="h-screen w-screen overflow-hidden bg-gray-950 text-white">
+    <div id="app" class="flex h-full flex-col">
+      <header class="flex items-center gap-2 border-b border-gray-800 px-4 py-2">
+        <h1 class="mr-auto text-lg font-bold">Sketch Detector</h1>
+        <label class="flex items-center gap-1 text-sm">
+          <span>Size</span>
+          <input
+            id="stroke-size"
+            type="range"
+            min="4"
+            max="24"
+            value="10"
+            class="w-20 accent-indigo-500"
+          />
+        </label>
+        <button
+          id="btn-clear"
+          class="rounded bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
+        >
+          Clear
+        </button>
+        <button
+          id="btn-export"
+          class="rounded bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
+        >
+          Export
+        </button>
+      </header>
+      <main class="relative flex-1">
+        <canvas id="drawing-canvas" class="absolute inset-0 h-full w-full touch-none"></canvas>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
