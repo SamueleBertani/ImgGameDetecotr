@@ -22,6 +22,8 @@ export class DrawingCanvas {
   private drawing = false;
   private _strokeSize = 10;
 
+  onStrokeEnd?: () => void;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -99,6 +101,7 @@ export class DrawingCanvas {
       this.strokes.push(stroke);
       this.bakeStroke(stroke);
       this.currentPoints = [];
+      this.onStrokeEnd?.();
     }
 
     this.redraw();
