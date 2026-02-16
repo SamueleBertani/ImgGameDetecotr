@@ -30,7 +30,7 @@ strokeSize.addEventListener("input", () => {
 // --- Inference ---
 
 let inferPending = false;
-let debounceTimer = 0;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 drawingCanvas.onStrokeEnd = () => {
   clearTimeout(debounceTimer);
