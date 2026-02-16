@@ -79,8 +79,13 @@ function formatLabel(label: string): string {
 
 // --- Model loading ---
 
-loadModel().then(() => {
-  modelStatus.textContent = "Model ready";
-  modelStatus.classList.replace("text-gray-400", "text-green-400");
-  setTimeout(() => modelStatus.classList.add("hidden"), 2000);
-});
+loadModel()
+  .then(() => {
+    modelStatus.textContent = "Model ready";
+    modelStatus.classList.replace("text-gray-400", "text-green-400");
+    setTimeout(() => modelStatus.classList.add("hidden"), 2000);
+  })
+  .catch(() => {
+    modelStatus.textContent = "Model failed to load";
+    modelStatus.classList.replace("text-gray-400", "text-red-400");
+  });
