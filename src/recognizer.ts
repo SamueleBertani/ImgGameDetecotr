@@ -57,17 +57,22 @@ export async function predict(
   if (!model) throw new Error("Model not loaded");
 
   const input = preprocessCanvas(canvas);
-  const output = model.predict(input) as tf.Tensor;
-  const probabilities = await output.data();
+  try {
+    const output = model.predict(input) as tf.Tensor;
+    try {
+      const probabilities = await output.data();
 
-  input.dispose();
-  output.dispose();
+      const indexed = Array.from(probabilities).map((p, i) => ({
+        label: LABELS[i],
+        probability: p,
+      }));
 
-  const indexed = Array.from(probabilities).map((p, i) => ({
-    label: LABELS[i],
-    probability: p,
-  }));
-
-  indexed.sort((a, b) => b.probability - a.probability);
-  return indexed.slice(0, TOP_N);
+      indexed.sort((a, b) => b.probability - a.probability);
+      return indexed.slice(0, TOP_N);
+    } finally {
+      output.dispose();
+    }
+  } finally {
+    input.dispose();
+  }
 }
