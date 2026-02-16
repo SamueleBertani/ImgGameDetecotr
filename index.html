@@ -30,6 +30,10 @@
         >
           <p id="model-status" class="text-sm text-gray-400">Loading model…</p>
           <ul id="prediction-list" class="mt-2 hidden space-y-1.5"></ul>
+          <div id="debug-preview" class="mt-3 hidden">
+            <p class="mb-1 text-xs text-gray-500">Model input (28x28)</p>
+            <canvas id="debug-canvas" width="28" height="28" class="h-14 w-14 rounded border border-gray-700" style="image-rendering:pixelated"></canvas>
+          </div>
         </aside>
       </main>
     </div>

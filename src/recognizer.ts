@@ -102,6 +102,32 @@ function preprocessCanvas(canvas: HTMLCanvasElement): tf.Tensor4D {
   });
 }
 
+/**
+ * Return the 28x28 preprocessed ImageData so callers can render a debug view.
+ */
+export function getPreprocessedImage(canvas: HTMLCanvasElement): ImageData {
+  const small = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
+  const sCtx = small.getContext("2d")!;
+
+  sCtx.fillStyle = "#000000";
+  sCtx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
+
+  const srcCtx = canvas.getContext("2d")!;
+  const srcData = srcCtx.getImageData(0, 0, canvas.width, canvas.height);
+  const bbox = findDrawingBBox(srcData.data, canvas.width, canvas.height);
+
+  if (bbox) {
+    const scale = Math.min(INPUT_SIZE / bbox.w, INPUT_SIZE / bbox.h);
+    const dw = bbox.w * scale;
+    const dh = bbox.h * scale;
+    const dx = (INPUT_SIZE - dw) / 2;
+    const dy = (INPUT_SIZE - dh) / 2;
+    sCtx.drawImage(canvas, bbox.x, bbox.y, bbox.w, bbox.h, dx, dy, dw, dh);
+  }
+
+  return sCtx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
+}
+
 export async function predict(
   canvas: HTMLCanvasElement,
 ): Promise<Prediction[]> {

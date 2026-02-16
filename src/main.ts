@@ -1,7 +1,7 @@
 import "./style.css";
 import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
-import { loadModel, predict, isModelLoaded, type Prediction } from "./recognizer";
+import { loadModel, predict, isModelLoaded, getPreprocessedImage, type Prediction } from "./recognizer";
 
 function qs<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -14,6 +14,8 @@ const btnClear = qs<HTMLButtonElement>("#btn-clear");
 const btnExport = qs<HTMLButtonElement>("#btn-export");
 const modelStatus = qs<HTMLParagraphElement>("#model-status");
 const predictionList = qs<HTMLUListElement>("#prediction-list");
+const debugPreview = qs<HTMLDivElement>("#debug-preview");
+const debugCanvas = qs<HTMLCanvasElement>("#debug-canvas");
 
 const drawingCanvas = new DrawingCanvas(canvasEl);
 
@@ -37,6 +39,7 @@ async function runInference(): Promise<void> {
   inferPending = true;
 
   try {
+    updateDebugPreview();
     const results = await predict(canvasEl);
     renderPredictions(results);
   } finally {
@@ -63,9 +66,17 @@ function renderPredictions(predictions: Prediction[]): void {
   }
 }
 
+function updateDebugPreview(): void {
+  const imgData = getPreprocessedImage(canvasEl);
+  const ctx = debugCanvas.getContext("2d")!;
+  ctx.putImageData(imgData, 0, 0);
+  debugPreview.classList.remove("hidden");
+}
+
 function clearPredictions(): void {
   predictionList.innerHTML = "";
   predictionList.classList.add("hidden");
+  debugPreview.classList.add("hidden");
 }
 
 function formatLabel(label: string): string {
