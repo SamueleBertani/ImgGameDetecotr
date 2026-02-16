@@ -20,7 +20,7 @@ export class DrawingCanvas {
   private strokes: Stroke[] = [];
   private currentPoints: Point[] = [];
   private drawing = false;
-  private readonly _strokeSize = 4;
+  private readonly _strokeSize = 8;
 
   onStrokeEnd?: () => void;
 

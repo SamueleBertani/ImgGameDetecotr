@@ -16,8 +16,8 @@ const TOP_N = 5;
 /** Padding around the bounding box as a fraction of the box size. */
 const BBOX_PAD = 0.15;
 
-/** Stroke size used when re-rendering at 28x28 (matches QuickDraw ~1-2px). */
-const MODEL_STROKE_SIZE = 2;
+/** Stroke size used when re-rendering at 28x28 (matches QuickDraw ~1px). */
+const MODEL_STROKE_SIZE = 1;
 
 let model: tf.LayersModel | null = null;
 
