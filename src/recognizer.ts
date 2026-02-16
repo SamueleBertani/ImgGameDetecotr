@@ -29,7 +29,8 @@ function preprocessCanvas(canvas: HTMLCanvasElement): tf.Tensor4D {
     sCtx.fillStyle = "#000000";
     sCtx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
 
-    // Scale source canvas into 28x28, preserving aspect ratio centered
+    // Scale source canvas into 28x28, preserving aspect ratio centered.
+    // Assumes a roughly square canvas; non-square will be letterboxed.
     const srcW = canvas.width;
     const srcH = canvas.height;
     const scale = Math.min(INPUT_SIZE / srcW, INPUT_SIZE / srcH);
