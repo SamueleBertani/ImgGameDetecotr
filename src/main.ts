@@ -12,7 +12,6 @@ function qs<T extends HTMLElement>(selector: string): T {
 const canvasEl = qs<HTMLCanvasElement>("#drawing-canvas");
 const btnClear = qs<HTMLButtonElement>("#btn-clear");
 const btnExport = qs<HTMLButtonElement>("#btn-export");
-const strokeSize = qs<HTMLInputElement>("#stroke-size");
 const modelStatus = qs<HTMLParagraphElement>("#model-status");
 const predictionList = qs<HTMLUListElement>("#prediction-list");
 
@@ -23,10 +22,6 @@ btnClear.addEventListener("click", () => {
   clearPredictions();
 });
 btnExport.addEventListener("click", () => exportAsImage(canvasEl));
-strokeSize.addEventListener("input", () => {
-  drawingCanvas.strokeSize = Number(strokeSize.value);
-});
-
 // --- Inference ---
 
 let inferPending = false;
