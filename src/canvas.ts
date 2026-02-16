@@ -39,6 +39,14 @@ export class DrawingCanvas {
     this.setupEvents();
   }
 
+  undo(): boolean {
+    if (this.strokes.length === 0) return false;
+    this.strokes.pop();
+    this.rebakeCommitted();
+    this.redraw();
+    return true;
+  }
+
   clear(): void {
     this.strokes = [];
     this.currentPoints = [];

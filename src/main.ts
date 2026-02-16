@@ -32,6 +32,21 @@ btnClear.addEventListener("click", () => {
   clearPredictions();
 });
 btnExport.addEventListener("click", () => exportAsImage(canvasEl));
+
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+    e.preventDefault();
+    if (drawingCanvas.undo()) {
+      clearTimeout(debounceTimer);
+      if (drawingCanvas.getStrokes().length > 0) {
+        debounceTimer = window.setTimeout(runInference, 300);
+      } else {
+        clearPredictions();
+      }
+    }
+  }
+});
+
 // --- Inference ---
 
 let inferPending = false;
