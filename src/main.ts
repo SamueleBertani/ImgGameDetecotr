@@ -2,10 +2,16 @@ import "./style.css";
 import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
 
-const canvasEl = document.querySelector<HTMLCanvasElement>("#drawing-canvas")!;
-const btnClear = document.querySelector<HTMLButtonElement>("#btn-clear")!;
-const btnExport = document.querySelector<HTMLButtonElement>("#btn-export")!;
-const strokeSize = document.querySelector<HTMLInputElement>("#stroke-size")!;
+function qs<T extends HTMLElement>(selector: string): T {
+  const el = document.querySelector<T>(selector);
+  if (!el) throw new Error(`Element not found: ${selector}`);
+  return el;
+}
+
+const canvasEl = qs<HTMLCanvasElement>("#drawing-canvas");
+const btnClear = qs<HTMLButtonElement>("#btn-clear");
+const btnExport = qs<HTMLButtonElement>("#btn-export");
+const strokeSize = qs<HTMLInputElement>("#stroke-size");
 
 const drawingCanvas = new DrawingCanvas(canvasEl);
 

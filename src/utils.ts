@@ -1,6 +1,6 @@
 /** Convert perfect-freehand stroke points to a Canvas2D path. */
 export function drawStroke(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   points: number[][],
 ): void {
   if (points.length < 2) return;
@@ -17,7 +17,6 @@ export function drawStroke(
   const last = points[points.length - 1];
   ctx.lineTo(last[0], last[1]);
   ctx.fill();
-  ctx.closePath();
 }
 
 /** Export the canvas content as a PNG download. */

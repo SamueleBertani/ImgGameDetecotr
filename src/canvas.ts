@@ -15,6 +15,8 @@ interface Stroke {
 export class DrawingCanvas {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private committed: OffscreenCanvas;
+  private committedCtx: OffscreenCanvasRenderingContext2D;
   private strokes: Stroke[] = [];
   private currentPoints: Point[] = [];
   private drawing = false;
@@ -23,6 +25,8 @@ export class DrawingCanvas {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
+    this.committed = new OffscreenCanvas(canvas.width || 1, canvas.height || 1);
+    this.committedCtx = this.committed.getContext("2d")!;
 
     this.setupResize();
     this.setupEvents();
@@ -35,6 +39,7 @@ export class DrawingCanvas {
   clear(): void {
     this.strokes = [];
     this.currentPoints = [];
+    this.rebakeCommitted();
     this.redraw();
   }
 
@@ -45,6 +50,7 @@ export class DrawingCanvas {
       this.canvas.width = rect.width * dpr;
       this.canvas.height = rect.height * dpr;
       this.ctx.scale(dpr, dpr);
+      this.rebakeCommitted();
       this.redraw();
     };
 
@@ -57,6 +63,7 @@ export class DrawingCanvas {
     this.canvas.addEventListener("pointermove", (e) => this.onPointerMove(e));
     this.canvas.addEventListener("pointerup", () => this.onPointerUp());
     this.canvas.addEventListener("pointerleave", () => this.onPointerUp());
+    this.canvas.addEventListener("pointercancel", () => this.onPointerUp());
   }
 
   private getPoint(e: PointerEvent): Point {
@@ -85,30 +92,55 @@ export class DrawingCanvas {
     this.drawing = false;
 
     if (this.currentPoints.length > 0) {
-      this.strokes.push({
+      const stroke: Stroke = {
         points: [...this.currentPoints],
         size: this._strokeSize,
-      });
+      };
+      this.strokes.push(stroke);
+      this.bakeStroke(stroke);
       this.currentPoints = [];
     }
 
     this.redraw();
   }
 
-  private redraw(): void {
+  private bakeStroke(stroke: Stroke): void {
+    this.committedCtx.fillStyle = "#ffffff";
+    const outlinePoints = getStroke(
+      stroke.points.map((p) => [p.x, p.y, p.pressure]),
+      { size: stroke.size, smoothing: 0.5, thinning: 0.5, streamline: 0.5 },
+    );
+    drawStroke(this.committedCtx, outlinePoints);
+  }
+
+  private rebakeCommitted(): void {
+    const dpr = window.devicePixelRatio || 1;
     const rect = this.canvas.getBoundingClientRect();
-    this.ctx.clearRect(0, 0, rect.width, rect.height);
-    this.ctx.fillStyle = "#ffffff";
+    this.committed.width = rect.width * dpr;
+    this.committed.height = rect.height * dpr;
+    this.committedCtx.scale(dpr, dpr);
+    this.committedCtx.fillStyle = "#ffffff";
 
     for (const stroke of this.strokes) {
       const outlinePoints = getStroke(
         stroke.points.map((p) => [p.x, p.y, p.pressure]),
         { size: stroke.size, smoothing: 0.5, thinning: 0.5, streamline: 0.5 },
       );
-      drawStroke(this.ctx, outlinePoints);
+      drawStroke(this.committedCtx, outlinePoints);
     }
+  }
+
+  private redraw(): void {
+    const rect = this.canvas.getBoundingClientRect();
+    this.ctx.clearRect(0, 0, rect.width, rect.height);
+
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.drawImage(this.committed, 0, 0);
+    this.ctx.restore();
 
     if (this.currentPoints.length > 0) {
+      this.ctx.fillStyle = "#ffffff";
       const outlinePoints = getStroke(
         this.currentPoints.map((p) => [p.x, p.y, p.pressure]),
         {
