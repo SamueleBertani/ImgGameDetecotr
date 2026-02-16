@@ -39,8 +39,9 @@ async function runInference(): Promise<void> {
   inferPending = true;
 
   try {
-    updateDebugPreview();
-    const results = await predict(canvasEl);
+    const strokes = drawingCanvas.getStrokes();
+    updateDebugPreview(strokes);
+    const results = await predict(strokes);
     renderPredictions(results);
   } finally {
     inferPending = false;
@@ -66,8 +67,8 @@ function renderPredictions(predictions: Prediction[]): void {
   }
 }
 
-function updateDebugPreview(): void {
-  const imgData = getPreprocessedImage(canvasEl);
+function updateDebugPreview(strokes: ReadonlyArray<Readonly<import("./canvas").Stroke>>): void {
+  const imgData = getPreprocessedImage(strokes);
   const ctx = debugCanvas.getContext("2d")!;
   ctx.putImageData(imgData, 0, 0);
   debugPreview.classList.remove("hidden");

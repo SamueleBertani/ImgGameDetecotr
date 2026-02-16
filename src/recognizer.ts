@@ -1,5 +1,8 @@
 import * as tf from "@tensorflow/tfjs";
+import getStroke from "perfect-freehand";
 import { LABELS } from "./labels";
+import { drawStroke } from "./utils";
+import type { Stroke } from "./canvas";
 
 export interface Prediction {
   label: string;
@@ -9,6 +12,12 @@ export interface Prediction {
 const MODEL_URL = "/models/doodlenet/model.json";
 const INPUT_SIZE = 28;
 const TOP_N = 5;
+
+/** Padding around the bounding box as a fraction of the box size. */
+const BBOX_PAD = 0.15;
+
+/** Stroke size used when re-rendering at 28x28 (matches QuickDraw ~1-2px). */
+const MODEL_STROKE_SIZE = 2;
 
 let model: tf.LayersModel | null = null;
 
@@ -20,77 +29,88 @@ export function isModelLoaded(): boolean {
   return model !== null;
 }
 
-/** Padding around the bounding box as a fraction of the box size. */
-const BBOX_PAD = 0.15;
-
 /**
- * Find the bounding box of non-black pixels in the canvas.
- * Returns null if the canvas is empty.
+ * Find the bounding box of stroke points (CSS-pixel coordinates).
+ * Returns null if there are no points.
  */
-function findDrawingBBox(
-  data: Uint8ClampedArray,
-  width: number,
-  height: number,
-): { x: number; y: number; w: number; h: number } | null {
-  let minX = width;
-  let minY = height;
-  let maxX = 0;
-  let maxY = 0;
+function findStrokeBBox(
+  strokes: ReadonlyArray<Readonly<Stroke>>,
+): { minX: number; minY: number; maxX: number; maxY: number } | null {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
   let found = false;
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4;
-      if (data[idx] > 0 || data[idx + 1] > 0 || data[idx + 2] > 0) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-        found = true;
-      }
+  for (const stroke of strokes) {
+    for (const p of stroke.points) {
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+      found = true;
     }
   }
 
-  if (!found) return null;
-
-  const bw = maxX - minX + 1;
-  const bh = maxY - minY + 1;
-  const padX = Math.round(bw * BBOX_PAD);
-  const padY = Math.round(bh * BBOX_PAD);
-
-  const x = Math.max(0, minX - padX);
-  const y = Math.max(0, minY - padY);
-  const w = Math.min(width - x, bw + padX * 2);
-  const h = Math.min(height - y, bh + padY * 2);
-
-  return { x, y, w, h };
+  return found ? { minX, minY, maxX, maxY } : null;
 }
 
-function preprocessCanvas(canvas: HTMLCanvasElement): tf.Tensor4D {
+/**
+ * Render strokes directly onto a 28x28 OffscreenCanvas.
+ * Points are mapped from their bounding box to fill the target area
+ * with padding, and drawn with a thin stroke matching QuickDraw data.
+ */
+function renderStrokesAt28(
+  strokes: ReadonlyArray<Readonly<Stroke>>,
+): OffscreenCanvas {
+  const canvas = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
+  const ctx = canvas.getContext("2d")!;
+
+  // Black background (QuickDraw convention)
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
+
+  const bbox = findStrokeBBox(strokes);
+  if (!bbox) return canvas;
+
+  const bw = bbox.maxX - bbox.minX || 1;
+  const bh = bbox.maxY - bbox.minY || 1;
+
+  // Effective area after padding
+  const pad = BBOX_PAD;
+  const available = INPUT_SIZE * (1 - pad * 2);
+  const scale = Math.min(available / bw, available / bh);
+  const offsetX = (INPUT_SIZE - bw * scale) / 2;
+  const offsetY = (INPUT_SIZE - bh * scale) / 2;
+
+  ctx.fillStyle = "#ffffff";
+
+  for (const stroke of strokes) {
+    const mappedPoints = stroke.points.map((p) => [
+      (p.x - bbox.minX) * scale + offsetX,
+      (p.y - bbox.minY) * scale + offsetY,
+      p.pressure,
+    ]);
+
+    const outlinePoints = getStroke(mappedPoints, {
+      size: MODEL_STROKE_SIZE,
+      smoothing: 0.5,
+      thinning: 0,
+      streamline: 0.5,
+    });
+
+    drawStroke(ctx, outlinePoints);
+  }
+
+  return canvas;
+}
+
+function preprocessStrokes(
+  strokes: ReadonlyArray<Readonly<Stroke>>,
+): tf.Tensor4D {
   return tf.tidy(() => {
-    const small = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
+    const small = renderStrokesAt28(strokes);
     const sCtx = small.getContext("2d")!;
-
-    // Black background (matches QuickDraw convention)
-    sCtx.fillStyle = "#000000";
-    sCtx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
-
-    // Crop to the bounding box of the drawing, then scale into 28x28
-    // centered with preserved aspect ratio so the sketch fills the input
-    // like QuickDraw training data.
-    const srcCtx = canvas.getContext("2d")!;
-    const srcData = srcCtx.getImageData(0, 0, canvas.width, canvas.height);
-    const bbox = findDrawingBBox(srcData.data, canvas.width, canvas.height);
-
-    if (bbox) {
-      const scale = Math.min(INPUT_SIZE / bbox.w, INPUT_SIZE / bbox.h);
-      const dw = bbox.w * scale;
-      const dh = bbox.h * scale;
-      const dx = (INPUT_SIZE - dw) / 2;
-      const dy = (INPUT_SIZE - dh) / 2;
-      sCtx.drawImage(canvas, bbox.x, bbox.y, bbox.w, bbox.h, dx, dy, dw, dh);
-    }
-
     const imageData = sCtx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
     const grayscale = new Float32Array(INPUT_SIZE * INPUT_SIZE);
 
@@ -105,35 +125,20 @@ function preprocessCanvas(canvas: HTMLCanvasElement): tf.Tensor4D {
 /**
  * Return the 28x28 preprocessed ImageData so callers can render a debug view.
  */
-export function getPreprocessedImage(canvas: HTMLCanvasElement): ImageData {
-  const small = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
+export function getPreprocessedImage(
+  strokes: ReadonlyArray<Readonly<Stroke>>,
+): ImageData {
+  const small = renderStrokesAt28(strokes);
   const sCtx = small.getContext("2d")!;
-
-  sCtx.fillStyle = "#000000";
-  sCtx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
-
-  const srcCtx = canvas.getContext("2d")!;
-  const srcData = srcCtx.getImageData(0, 0, canvas.width, canvas.height);
-  const bbox = findDrawingBBox(srcData.data, canvas.width, canvas.height);
-
-  if (bbox) {
-    const scale = Math.min(INPUT_SIZE / bbox.w, INPUT_SIZE / bbox.h);
-    const dw = bbox.w * scale;
-    const dh = bbox.h * scale;
-    const dx = (INPUT_SIZE - dw) / 2;
-    const dy = (INPUT_SIZE - dh) / 2;
-    sCtx.drawImage(canvas, bbox.x, bbox.y, bbox.w, bbox.h, dx, dy, dw, dh);
-  }
-
   return sCtx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
 }
 
 export async function predict(
-  canvas: HTMLCanvasElement,
+  strokes: ReadonlyArray<Readonly<Stroke>>,
 ): Promise<Prediction[]> {
   if (!model) throw new Error("Model not loaded");
 
-  const input = preprocessCanvas(canvas);
+  const input = preprocessStrokes(strokes);
   try {
     const output = model.predict(input) as tf.Tensor;
     try {
