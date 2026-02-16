@@ -1,13 +1,13 @@
 import getStroke from "perfect-freehand";
 import { drawStroke } from "./utils";
 
-interface Point {
+export interface Point {
   x: number;
   y: number;
   pressure: number;
 }
 
-interface Stroke {
+export interface Stroke {
   points: Point[];
   size: number;
 }
@@ -23,6 +23,11 @@ export class DrawingCanvas {
   private readonly _strokeSize = 4;
 
   onStrokeEnd?: () => void;
+
+  /** Return a read-only copy of completed strokes (CSS-pixel coords). */
+  getStrokes(): ReadonlyArray<Readonly<Stroke>> {
+    return this.strokes;
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
