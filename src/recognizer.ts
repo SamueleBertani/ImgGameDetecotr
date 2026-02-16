@@ -17,7 +17,7 @@ const TOP_N = 5;
 const BBOX_PAD = 0.15;
 
 /** Stroke size used when re-rendering at 28x28 (matches QuickDraw ~1px). */
-const MODEL_STROKE_SIZE = 1;
+const MODEL_STROKE_SIZE = 1.5;
 
 let model: tf.LayersModel | null = null;
 

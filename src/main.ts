@@ -83,6 +83,7 @@ function updateDebugPreview(strokes: ReadonlyArray<Readonly<import("./canvas").S
   const ctx = debugCanvas.getContext("2d")!;
   ctx.putImageData(imgData, 0, 0);
   debugPreview.classList.remove("hidden");
+  debugPreview.classList.add("flex");
 }
 
 function updateScore(predictions: Prediction[]): void {
@@ -98,6 +99,7 @@ function clearPredictions(): void {
   predictionList.innerHTML = "";
   predictionList.classList.add("hidden");
   debugPreview.classList.add("hidden");
+  debugPreview.classList.remove("flex");
   scoreDisplay.classList.add("hidden");
 }
 
