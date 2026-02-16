@@ -2,6 +2,7 @@ import "./style.css";
 import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
 import { loadModel, predict, isModelLoaded, getPreprocessedImage, type Prediction } from "./recognizer";
+import { loadDistances, isDistancesLoaded, getWeightedScore } from "./semantics";
 
 function qs<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -16,6 +17,13 @@ const modelStatus = qs<HTMLParagraphElement>("#model-status");
 const predictionList = qs<HTMLUListElement>("#prediction-list");
 const debugPreview = qs<HTMLDivElement>("#debug-preview");
 const debugCanvas = qs<HTMLCanvasElement>("#debug-canvas");
+const scoreDisplay = qs<HTMLDivElement>("#score-display");
+const scoreBar = qs<HTMLDivElement>("#score-bar");
+const scoreValue = qs<HTMLSpanElement>("#score-value");
+const scoreTarget = qs<HTMLParagraphElement>("#score-target");
+
+/** Temporary test target word — will come from game logic in M4. */
+const DEBUG_TARGET = "duck";
 
 const drawingCanvas = new DrawingCanvas(canvasEl);
 
@@ -43,6 +51,9 @@ async function runInference(): Promise<void> {
     updateDebugPreview(strokes);
     const results = await predict(strokes);
     renderPredictions(results);
+    if (isDistancesLoaded()) {
+      updateScore(results);
+    }
   } finally {
     inferPending = false;
   }
@@ -74,10 +85,20 @@ function updateDebugPreview(strokes: ReadonlyArray<Readonly<import("./canvas").S
   debugPreview.classList.remove("hidden");
 }
 
+function updateScore(predictions: Prediction[]): void {
+  const score = getWeightedScore(predictions, DEBUG_TARGET);
+  const pct = (score * 100).toFixed(1);
+  scoreBar.style.width = `${pct}%`;
+  scoreValue.textContent = score.toFixed(2);
+  scoreTarget.textContent = `Target: ${DEBUG_TARGET}`;
+  scoreDisplay.classList.remove("hidden");
+}
+
 function clearPredictions(): void {
   predictionList.innerHTML = "";
   predictionList.classList.add("hidden");
   debugPreview.classList.add("hidden");
+  scoreDisplay.classList.add("hidden");
 }
 
 function formatLabel(label: string): string {
@@ -86,7 +107,7 @@ function formatLabel(label: string): string {
 
 // --- Model loading ---
 
-loadModel()
+Promise.all([loadModel(), loadDistances()])
   .then(() => {
     modelStatus.textContent = "Model ready";
     modelStatus.classList.replace("text-gray-400", "text-green-400");
