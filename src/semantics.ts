@@ -44,12 +44,13 @@ function triIndex(i: number, j: number): number {
 }
 
 const SIGMOID_K = 10;
+const SIGMOID_CENTER = 0.65;
 
 /** Sigmoid remapped so that f(0)=0 and f(1)=1. */
 function sigmoidNorm(x: number): number {
-  const s = 1 / (1 + Math.exp(-SIGMOID_K * (x - 0.5)));
-  const s0 = 1 / (1 + Math.exp(-SIGMOID_K * -0.5));
-  const s1 = 1 / (1 + Math.exp(-SIGMOID_K * 0.5));
+  const s = 1 / (1 + Math.exp(-SIGMOID_K * (x - SIGMOID_CENTER)));
+  const s0 = 1 / (1 + Math.exp(-SIGMOID_K * (0 - SIGMOID_CENTER)));
+  const s1 = 1 / (1 + Math.exp(-SIGMOID_K * (1 - SIGMOID_CENTER)));
   return (s - s0) / (s1 - s0);
 }
 
