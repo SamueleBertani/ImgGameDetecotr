@@ -2,7 +2,7 @@ import "./style.css";
 import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
 import { loadModel, predict, isModelLoaded, getPreprocessedImage, type Prediction } from "./recognizer";
-import { loadDistances, isDistancesLoaded, getWeightedScore } from "./semantics";
+import { loadDistances, isDistancesLoaded, getWeightedScore, getDistance } from "./semantics";
 
 function qs<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -80,14 +80,26 @@ function renderPredictions(predictions: Prediction[]): void {
 
   for (const p of predictions) {
     const pct = (p.probability * 100).toFixed(1);
+    const dist = getDistance(p.label, DEBUG_TARGET);
+    const distPct = (dist * 100).toFixed(1);
     const li = document.createElement("li");
     li.className = "flex items-center gap-2 text-sm";
     li.innerHTML = `
       <span class="w-24 truncate text-gray-200">${formatLabel(p.label)}</span>
-      <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-700">
-        <div class="absolute inset-y-0 left-0 rounded-full bg-indigo-500" style="width:${pct}%"></div>
+      <div class="flex flex-1 flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-700">
+            <div class="absolute inset-y-0 left-0 rounded-full bg-indigo-500" style="width:${pct}%"></div>
+          </div>
+          <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-700">
+            <div class="absolute inset-y-0 left-0 rounded-full bg-amber-500" style="width:${distPct}%"></div>
+          </div>
+          <span class="w-12 text-right tabular-nums text-amber-400">${distPct}%</span>
+        </div>
       </div>
-      <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
     `;
     predictionList.appendChild(li);
   }
