@@ -20,10 +20,10 @@ export function renderPredictions(
   for (const p of predictions) {
     const pct = (p.probability * 100).toFixed(1);
     const distGlove = semanticsGlove ? semanticsGlove.getDistance(p.label, currentTarget) : 0;
-    const distGlovePct = (distGlove * 100).toFixed(1);
+    const distGlovePct = (distGlove * 100).toFixed(0);
     const distNB = semanticsNB ? semanticsNB.getDistance(p.label, currentTarget) : 0;
-    const distNBPct = (distNB * 100).toFixed(1);
-    const showNB = showDistanceBars && semanticsNB;
+    const distNBPct = (distNB * 100).toFixed(0);
+    const hasNB = !!semanticsNB;
     const li = document.createElement("li");
     li.className = "flex items-center gap-2 text-sm";
     li.innerHTML = `
@@ -35,17 +35,8 @@ export function renderPredictions(
           </div>
           <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
         </div>
-        <div class="distance-row flex items-center gap-2" style="${showDistanceBars ? "" : "display:none"}">
-          <div class="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-700">
-            <div class="absolute inset-y-0 left-0 rounded-full bg-amber-500" style="width:${distGlovePct}%"></div>
-          </div>
-          <span class="w-12 text-right tabular-nums text-xs text-amber-400">${distGlovePct}%</span>
-        </div>
-        <div class="distance-row flex items-center gap-2" style="${showNB ? "" : "display:none"}">
-          <div class="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-700">
-            <div class="absolute inset-y-0 left-0 rounded-full bg-cyan-500" style="width:${distNBPct}%"></div>
-          </div>
-          <span class="w-12 text-right tabular-nums text-xs text-cyan-400">${distNBPct}%</span>
+        <div class="distance-row text-xs tabular-nums" style="${showDistanceBars ? "" : "display:none"}">
+          <span class="text-amber-400">GloVe: ${distGlovePct}</span>${hasNB ? ` <span class="text-gray-600">|</span> <span class="text-cyan-400">NB: ${distNBPct}</span>` : ""}
         </div>
       </div>
     `;
