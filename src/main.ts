@@ -43,7 +43,6 @@ toggleDistance.addEventListener("change", () => {
   document.querySelectorAll<HTMLDivElement>(".distance-row").forEach((el) => {
     el.style.display = showDistanceBars ? "" : "none";
   });
-  scoreDisplay.classList.toggle("hidden", !showDistanceBars);
 });
 
 toggleTarget.addEventListener("change", () => {
@@ -154,7 +153,7 @@ function updateScore(predictions: Prediction[]): void {
   scoreValue.textContent = score.toFixed(2);
   scoreTarget.textContent = `Target: ${currentTarget}`;
   scoreTarget.style.display = showTarget ? "" : "none";
-  scoreDisplay.classList.toggle("hidden", !showDistanceBars);
+  scoreDisplay.classList.remove("hidden");
 }
 
 function clearPredictions(): void {
