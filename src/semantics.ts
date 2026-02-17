@@ -8,6 +8,8 @@ interface DistanceData {
 let wordIndex: Map<string, number> | null = null;
 let distArray: number[] = [];
 let wordCount = 0;
+let distMin = 0;
+let distMax = 1;
 
 /**
  * Load the pre-computed semantic distance matrix from JSON.
@@ -20,6 +22,9 @@ export async function loadDistances(): Promise<void> {
   wordCount = data.words.length;
   distArray = data.distances;
   wordIndex = new Map(data.words.map((w, i) => [w, i]));
+
+  distMin = Math.min(...distArray);
+  distMax = Math.max(...distArray);
 }
 
 export function isDistancesLoaded(): boolean {
@@ -38,8 +43,19 @@ function triIndex(i: number, j: number): number {
   return lo * wordCount - (lo * (lo + 1)) / 2 + (hi - lo - 1);
 }
 
+const SIGMOID_K = 10;
+
+/** Sigmoid remapped so that f(0)=0 and f(1)=1. */
+function sigmoidNorm(x: number): number {
+  const s = 1 / (1 + Math.exp(-SIGMOID_K * (x - 0.5)));
+  const s0 = 1 / (1 + Math.exp(-SIGMOID_K * -0.5));
+  const s1 = 1 / (1 + Math.exp(-SIGMOID_K * 0.5));
+  return (s - s0) / (s1 - s0);
+}
+
 /**
  * Get the semantic similarity between two words (0.0 = unrelated, 1.0 = identical).
+ * Raw cosine similarity is rescaled via min-max + sigmoid for better spread.
  * Returns 0 if either word is not in the vocabulary.
  */
 export function getDistance(word1: string, word2: string): number {
@@ -50,7 +66,9 @@ export function getDistance(word1: string, word2: string): number {
   const j = wordIndex.get(word2);
   if (i === undefined || j === undefined) return 0;
 
-  return distArray[triIndex(i, j)];
+  const raw = distArray[triIndex(i, j)];
+  const rescaled = (raw - distMin) / (distMax - distMin);
+  return sigmoidNorm(rescaled);
 }
 
 /**
