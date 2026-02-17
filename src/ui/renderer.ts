@@ -35,8 +35,19 @@ export function renderPredictions(
           </div>
           <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
         </div>
-        <div class="distance-row text-xs tabular-nums" style="${showDistanceBars ? "" : "display:none"}">
-          <span class="text-amber-400">GloVe: ${distGloveFmt}</span>${hasNB ? ` <span class="text-gray-600">|</span> <span class="text-cyan-400">NB: ${distNBFmt}</span>` : ""}
+        <div class="distance-row flex items-center gap-1" style="${showDistanceBars ? "" : "display:none"}">
+          <div class="flex flex-1 items-center gap-1">
+            <div class="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-700">
+              <div class="absolute inset-y-0 left-0 rounded-full bg-amber-500" style="width:${(distGlove * 100).toFixed(1)}%"></div>
+            </div>
+            <span class="w-7 text-right tabular-nums text-[10px] text-amber-400">${distGloveFmt}</span>
+          </div>${hasNB ? `
+          <div class="flex flex-1 items-center gap-1">
+            <div class="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-700">
+              <div class="absolute inset-y-0 left-0 rounded-full bg-cyan-500" style="width:${(distNB * 100).toFixed(1)}%"></div>
+            </div>
+            <span class="w-7 text-right tabular-nums text-[10px] text-cyan-400">${distNBFmt}</span>
+          </div>` : ""}
         </div>
       </div>
     `;
