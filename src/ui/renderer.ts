@@ -20,9 +20,9 @@ export function renderPredictions(
   for (const p of predictions) {
     const pct = (p.probability * 100).toFixed(1);
     const distGlove = semanticsGlove ? semanticsGlove.getDistance(p.label, currentTarget) : 0;
-    const distGlovePct = (distGlove * 100).toFixed(0);
+    const distGloveFmt = distGlove.toFixed(2);
     const distNB = semanticsNB ? semanticsNB.getDistance(p.label, currentTarget) : 0;
-    const distNBPct = (distNB * 100).toFixed(0);
+    const distNBFmt = distNB.toFixed(2);
     const hasNB = !!semanticsNB;
     const li = document.createElement("li");
     li.className = "flex items-center gap-2 text-sm";
@@ -36,7 +36,7 @@ export function renderPredictions(
           <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
         </div>
         <div class="distance-row text-xs tabular-nums" style="${showDistanceBars ? "" : "display:none"}">
-          <span class="text-amber-400">GloVe: ${distGlovePct}</span>${hasNB ? ` <span class="text-gray-600">|</span> <span class="text-cyan-400">NB: ${distNBPct}</span>` : ""}
+          <span class="text-amber-400">GloVe: ${distGloveFmt}</span>${hasNB ? ` <span class="text-gray-600">|</span> <span class="text-cyan-400">NB: ${distNBFmt}</span>` : ""}
         </div>
       </div>
     `;
