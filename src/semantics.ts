@@ -32,9 +32,9 @@ export class SemanticDistance {
     this.sigmoidS1 = 1 / (1 + Math.exp(-SIGMOID_K * (1 - SIGMOID_CENTER)));
   }
 
-  /** Fetch the distance matrix from the server and build the index. */
-  static async load(): Promise<SemanticDistance> {
-    const resp = await fetch("/distances.json");
+  /** Fetch a distance matrix JSON from the server and build the index. */
+  static async load(url: string): Promise<SemanticDistance> {
+    const resp = await fetch(url);
     const data: DistanceData = await resp.json();
     return new SemanticDistance(data);
   }

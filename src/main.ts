@@ -21,7 +21,8 @@ import {
 let currentTarget = "duck";
 let showDistanceBars = false;
 let showTarget = false;
-let semantics: SemanticDistance | null = null;
+let semanticsGlove: SemanticDistance | null = null;
+let semanticsNB: SemanticDistance | null = null;
 let inferPending = false;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -46,9 +47,9 @@ async function runInference(): Promise<void> {
     const strokes = drawingCanvas.getStrokes();
     updateDebugPreview(strokes);
     const results: Prediction[] = await predict(strokes);
-    renderPredictions(results, currentTarget, showDistanceBars, semantics);
-    if (semantics) {
-      updateScore(results, currentTarget, showTarget, semantics);
+    renderPredictions(results, currentTarget, showDistanceBars, semanticsGlove);
+    if (semanticsGlove || semanticsNB) {
+      updateScore(results, currentTarget, showTarget, semanticsGlove, semanticsNB);
     }
   } finally {
     inferPending = false;
@@ -77,8 +78,9 @@ dom.toggles.target.addEventListener("change", () => {
 });
 
 dom.buttons.newWord.addEventListener("click", () => {
-  if (!semantics) return;
-  const words = semantics.getWords();
+  const source = semanticsGlove ?? semanticsNB;
+  if (!source) return;
+  const words = source.getWords();
   if (words.length === 0) return;
   let next: string;
   do {
@@ -105,9 +107,14 @@ document.addEventListener("keydown", (e) => {
 
 // --- Boot ---
 
-Promise.all([loadModel(), SemanticDistance.load()])
-  .then(([, sd]) => {
-    semantics = sd;
+Promise.all([
+  loadModel(),
+  SemanticDistance.load("/distances.json"),
+  SemanticDistance.load("/distances_nb.json").catch(() => null),
+])
+  .then(([, glove, nb]) => {
+    semanticsGlove = glove;
+    semanticsNB = nb;
     showModelReady();
   })
   .catch(() => showModelError());

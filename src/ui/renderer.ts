@@ -52,20 +52,32 @@ export function updateDebugPreview(strokes: ReadonlyArray<Readonly<Stroke>>): vo
   dom.debug.preview.classList.add("flex");
 }
 
-/** Update the semantic score bar and value display. */
+/** Update both semantic score bars (GloVe + Numberbatch). */
 export function updateScore(
   predictions: Prediction[],
   currentTarget: string,
   showTarget: boolean,
-  semantics: SemanticDistance,
+  semanticsGlove: SemanticDistance | null,
+  semanticsNB: SemanticDistance | null,
 ): void {
-  const score = semantics.getWeightedScore(predictions, currentTarget);
-  const pct = (score * 100).toFixed(1);
-  dom.score.bar.style.width = `${pct}%`;
-  dom.score.value.textContent = score.toFixed(2);
+  if (semanticsGlove) {
+    const score = semanticsGlove.getWeightedScore(predictions, currentTarget);
+    const pct = (score * 100).toFixed(1);
+    dom.score.bar.style.width = `${pct}%`;
+    dom.score.value.textContent = score.toFixed(2);
+    dom.score.display.classList.remove("hidden");
+  }
+
+  if (semanticsNB) {
+    const score = semanticsNB.getWeightedScore(predictions, currentTarget);
+    const pct = (score * 100).toFixed(1);
+    dom.scoreNB.bar.style.width = `${pct}%`;
+    dom.scoreNB.value.textContent = score.toFixed(2);
+    dom.scoreNB.display.classList.remove("hidden");
+  }
+
   dom.score.target.textContent = `Target: ${currentTarget}`;
   dom.score.target.style.display = showTarget ? "" : "none";
-  dom.score.display.classList.remove("hidden");
 }
 
 /** Hide predictions, debug preview, and score display. */
@@ -75,6 +87,8 @@ export function clearPredictions(): void {
   dom.debug.preview.classList.add("hidden");
   dom.debug.preview.classList.remove("flex");
   dom.score.display.classList.add("hidden");
+  dom.scoreNB.display.classList.add("hidden");
+  dom.score.target.classList.add("hidden");
 }
 
 /** Show or hide all semantic distance bar rows. */

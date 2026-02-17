@@ -37,4 +37,10 @@ export const dom = {
     value: qs<HTMLSpanElement>("#score-value"),
     target: qs<HTMLParagraphElement>("#score-target"),
   },
+
+  scoreNB: {
+    display: qs<HTMLDivElement>("#score-display-nb"),
+    bar: qs<HTMLDivElement>("#score-bar-nb"),
+    value: qs<HTMLSpanElement>("#score-value-nb"),
+  },
 } as const;
