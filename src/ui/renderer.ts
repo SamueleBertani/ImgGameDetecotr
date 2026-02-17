@@ -78,6 +78,7 @@ export function updateScore(
   }
 
   dom.score.target.textContent = `Target: ${currentTarget}`;
+  dom.score.target.classList.remove("hidden");
   dom.score.target.style.display = showTarget ? "" : "none";
 }
 
