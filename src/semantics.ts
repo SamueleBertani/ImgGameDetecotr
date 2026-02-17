@@ -1,15 +1,16 @@
 import { SIGMOID_K, SIGMOID_CENTER } from "./config";
-
-export interface Prediction {
-  label: string;
-  probability: number;
-}
+import type { Prediction } from "./types";
 
 interface DistanceData {
   words: string[];
   distances: number[];
 }
 
+/**
+ * Pre-computed semantic distance matrix between drawing categories.
+ * Uses cosine similarity rescaled via min-max normalization and a
+ * sigmoid curve for better visual spread.
+ */
 export class SemanticDistance {
   private wordIndex: Map<string, number>;
   private distArray: number[];
@@ -31,19 +32,21 @@ export class SemanticDistance {
     this.sigmoidS1 = 1 / (1 + Math.exp(-SIGMOID_K * (1 - SIGMOID_CENTER)));
   }
 
+  /** Fetch the distance matrix from the server and build the index. */
   static async load(): Promise<SemanticDistance> {
     const resp = await fetch("/distances.json");
     const data: DistanceData = await resp.json();
     return new SemanticDistance(data);
   }
 
+  /** Return the list of all words in the vocabulary. */
   getWords(): readonly string[] {
     return [...this.wordIndex.keys()];
   }
 
   /**
    * Semantic similarity between two words (0 = unrelated, 1 = identical).
-   * Throws if either word is not in the vocabulary.
+   * Returns 0 if either word is not in the vocabulary.
    */
   getDistance(word1: string, word2: string): number {
     if (word1 === word2) return 1;
@@ -66,7 +69,7 @@ export class SemanticDistance {
     return score;
   }
 
-  /** Upper-triangle index for pair (i, j). */
+  /** Upper-triangle index for pair (i, j) in the flat distance array. */
   private triIndex(i: number, j: number): number {
     const lo = Math.min(i, j);
     const hi = Math.max(i, j);

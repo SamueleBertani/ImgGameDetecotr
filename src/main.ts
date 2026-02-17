@@ -3,7 +3,7 @@ import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
 import { loadModel, predict, isModelLoaded } from "./recognizer";
 import { SemanticDistance } from "./semantics";
-import type { Prediction } from "./semantics";
+import type { Prediction } from "./types";
 import { INFERENCE_DEBOUNCE_MS } from "./config";
 import { dom } from "./ui/dom";
 import {

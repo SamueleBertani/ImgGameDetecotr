@@ -1,10 +1,11 @@
 import { dom } from "./dom";
 import { formatLabel } from "../utils";
 import { getPreprocessedImage } from "../recognizer";
-import type { Prediction } from "../semantics";
+import type { Prediction } from "../types";
 import type { SemanticDistance } from "../semantics";
 import type { Stroke } from "../canvas";
 
+/** Render the top-N prediction bars (and optional distance bars) into the list. */
 export function renderPredictions(
   predictions: Prediction[],
   currentTarget: string,
@@ -42,6 +43,7 @@ export function renderPredictions(
   }
 }
 
+/** Render the 28x28 preprocessed image into the debug canvas. */
 export function updateDebugPreview(strokes: ReadonlyArray<Readonly<Stroke>>): void {
   const imgData = getPreprocessedImage(strokes);
   const ctx = dom.debug.canvas.getContext("2d")!;
@@ -50,6 +52,7 @@ export function updateDebugPreview(strokes: ReadonlyArray<Readonly<Stroke>>): vo
   dom.debug.preview.classList.add("flex");
 }
 
+/** Update the semantic score bar and value display. */
 export function updateScore(
   predictions: Prediction[],
   currentTarget: string,
@@ -65,6 +68,7 @@ export function updateScore(
   dom.score.display.classList.remove("hidden");
 }
 
+/** Hide predictions, debug preview, and score display. */
 export function clearPredictions(): void {
   dom.predictions.list.innerHTML = "";
   dom.predictions.list.classList.add("hidden");
@@ -73,18 +77,21 @@ export function clearPredictions(): void {
   dom.score.display.classList.add("hidden");
 }
 
+/** Show or hide all semantic distance bar rows. */
 export function toggleDistanceRows(show: boolean): void {
   document.querySelectorAll<HTMLDivElement>(".distance-row").forEach((el) => {
     el.style.display = show ? "" : "none";
   });
 }
 
+/** Update the status element to indicate the model loaded successfully. */
 export function showModelReady(): void {
   dom.status.textContent = "Model ready";
   dom.status.classList.replace("text-gray-400", "text-green-400");
   setTimeout(() => dom.status.classList.add("hidden"), 2000);
 }
 
+/** Update the status element to indicate a model loading failure. */
 export function showModelError(): void {
   dom.status.textContent = "Model failed to load";
   dom.status.classList.replace("text-gray-400", "text-red-400");

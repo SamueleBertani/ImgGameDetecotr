@@ -1,17 +1,23 @@
 import { renderStroke } from "./strokeRenderer";
 import { DISPLAY_STROKE } from "./config";
 
+/** A 2D point with pen pressure, in CSS-pixel coordinates. */
 export interface Point {
   x: number;
   y: number;
   pressure: number;
 }
 
+/** A completed freehand stroke made of points and a rendered size. */
 export interface Stroke {
   points: Point[];
   size: number;
 }
 
+/**
+ * Manages a freehand drawing surface with undo, clear, and
+ * double-buffered rendering (committed strokes + live stroke).
+ */
 export class DrawingCanvas {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -21,8 +27,10 @@ export class DrawingCanvas {
   private currentPoints: Point[] = [];
   private drawing = false;
 
+  /** Fires after a stroke is committed to the stroke list. */
   onStrokeEnd?: () => void;
 
+  /** Return a read-only view of all completed strokes. */
   getStrokes(): ReadonlyArray<Readonly<Stroke>> {
     return this.strokes;
   }
@@ -37,6 +45,7 @@ export class DrawingCanvas {
     this.setupEvents();
   }
 
+  /** Remove the last stroke and re-render. Returns false if nothing to undo. */
   undo(): boolean {
     if (this.strokes.length === 0) return false;
     this.strokes.pop();
@@ -45,6 +54,7 @@ export class DrawingCanvas {
     return true;
   }
 
+  /** Clear all strokes and the canvas. */
   clear(): void {
     this.strokes = [];
     this.currentPoints = [];
@@ -114,11 +124,13 @@ export class DrawingCanvas {
     this.redraw();
   }
 
+  /** Render a single stroke onto the committed buffer. */
   private bakeStroke(stroke: Stroke): void {
     this.committedCtx.fillStyle = "#ffffff";
     renderStroke(this.committedCtx, stroke.points, { ...DISPLAY_STROKE, size: stroke.size });
   }
 
+  /** Re-render all committed strokes from scratch (e.g. after resize or undo). */
   private rebakeCommitted(): void {
     const dpr = window.devicePixelRatio || 1;
     const rect = this.canvas.getBoundingClientRect();
@@ -132,6 +144,7 @@ export class DrawingCanvas {
     }
   }
 
+  /** Composite committed buffer + live stroke onto the visible canvas. */
   private redraw(): void {
     const rect = this.canvas.getBoundingClientRect();
     this.ctx.clearRect(0, 0, rect.width, rect.height);

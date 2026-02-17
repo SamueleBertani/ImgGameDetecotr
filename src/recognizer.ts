@@ -3,20 +3,21 @@ import { LABELS } from "./labels";
 import { renderStroke } from "./strokeRenderer";
 import { MODEL_URL, INPUT_SIZE, TOP_N, BBOX_PAD, MODEL_STROKE } from "./config";
 import type { Stroke } from "./canvas";
-import type { Prediction } from "./semantics";
-
-export type { Prediction };
+import type { Prediction } from "./types";
 
 let model: tf.LayersModel | null = null;
 
+/** Fetch and initialize the TensorFlow.js doodlenet model. */
 export async function loadModel(): Promise<void> {
   model = await tf.loadLayersModel(MODEL_URL);
 }
 
+/** Whether the model has been loaded and is ready for inference. */
 export function isModelLoaded(): boolean {
   return model !== null;
 }
 
+/** Compute the axis-aligned bounding box of all stroke points. */
 function findStrokeBBox(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): { minX: number; minY: number; maxX: number; maxY: number } | null {
@@ -39,6 +40,10 @@ function findStrokeBBox(
   return found ? { minX, minY, maxX, maxY } : null;
 }
 
+/**
+ * Render strokes onto a 28x28 OffscreenCanvas, mapping from their
+ * bounding box to fill the target area with padding.
+ */
 function renderStrokesAt28(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): OffscreenCanvas {
@@ -73,6 +78,7 @@ function renderStrokesAt28(
   return canvas;
 }
 
+/** Convert strokes to a normalized [1, 28, 28, 1] grayscale tensor. */
 function preprocessStrokes(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): tf.Tensor4D {
@@ -90,6 +96,7 @@ function preprocessStrokes(
   });
 }
 
+/** Return the 28x28 preprocessed ImageData for debug visualization. */
 export function getPreprocessedImage(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): ImageData {
@@ -98,6 +105,7 @@ export function getPreprocessedImage(
   return sCtx.getImageData(0, 0, INPUT_SIZE, INPUT_SIZE);
 }
 
+/** Run inference on the given strokes and return the top-N predictions. */
 export async function predict(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): Promise<Prediction[]> {

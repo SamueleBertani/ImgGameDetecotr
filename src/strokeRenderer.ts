@@ -3,6 +3,7 @@ import type { Point } from "./canvas";
 
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
+/** Options passed to perfect-freehand for stroke rendering. */
 export interface StrokeStyle {
   readonly size: number;
   readonly smoothing: number;
@@ -10,7 +11,10 @@ export interface StrokeStyle {
   readonly streamline: number;
 }
 
-/** Convert points to an outline via perfect-freehand and fill it on the context. */
+/**
+ * Convert an array of points to a smooth outline via perfect-freehand
+ * and fill the resulting path on the given canvas context.
+ */
 export function renderStroke(
   ctx: Ctx,
   points: ReadonlyArray<Readonly<Point>>,
