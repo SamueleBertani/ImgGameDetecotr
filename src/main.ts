@@ -19,7 +19,7 @@ import {
 // --- State ---
 
 let currentTarget = "duck";
-let showDistanceBars = false;
+let showDistanceBars = true;
 let showTarget = false;
 let semanticsGlove: SemanticDistance | null = null;
 let semanticsNB: SemanticDistance | null = null;
