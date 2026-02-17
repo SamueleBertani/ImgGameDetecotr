@@ -25,6 +25,8 @@ let semanticsGlove: SemanticDistance | null = null;
 let semanticsNB: SemanticDistance | null = null;
 let inferPending = false;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let roundStartTime = Date.now();
+let hasWon = false;
 
 // --- Canvas ---
 
@@ -49,7 +51,12 @@ async function runInference(): Promise<void> {
     const results: Prediction[] = await predict(strokes);
     renderPredictions(results, currentTarget, showDistanceBars, semanticsGlove, semanticsNB);
     if (semanticsGlove || semanticsNB) {
-      updateScore(results, currentTarget, showTarget, semanticsGlove, semanticsNB);
+      const maxScore = updateScore(results, currentTarget, showTarget, semanticsGlove, semanticsNB);
+      if (!hasWon && maxScore >= 0.9) {
+        hasWon = true;
+        const elapsed = Math.round((Date.now() - roundStartTime) / 1000);
+        alert(`Win, yuppy! The word was ${currentTarget}. Time used: ${elapsed}s`);
+      }
     }
   } finally {
     inferPending = false;
@@ -87,6 +94,8 @@ dom.buttons.newWord.addEventListener("click", () => {
     next = words[Math.floor(Math.random() * words.length)];
   } while (next === currentTarget && words.length > 1);
   currentTarget = next;
+  hasWon = false;
+  roundStartTime = Date.now();
   dom.score.target.textContent = `Target: ${currentTarget}`;
   scheduleInference(0);
 });

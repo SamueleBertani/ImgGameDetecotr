@@ -64,20 +64,23 @@ export function updateDebugPreview(strokes: ReadonlyArray<Readonly<Stroke>>): vo
   dom.debug.preview.classList.add("flex");
 }
 
-/** Update both semantic score bars (GloVe + Numberbatch). */
+/** Update both semantic score bars (GloVe + Numberbatch). Returns the max score across both. */
 export function updateScore(
   predictions: Prediction[],
   currentTarget: string,
   showTarget: boolean,
   semanticsGlove: SemanticDistance | null,
   semanticsNB: SemanticDistance | null,
-): void {
+): number {
+  let maxScore = 0;
+
   if (semanticsGlove) {
     const score = semanticsGlove.getWeightedScore(predictions, currentTarget);
     const pct = (score * 100).toFixed(1);
     dom.score.bar.style.width = `${pct}%`;
     dom.score.value.textContent = score.toFixed(2);
     dom.score.display.classList.remove("hidden");
+    if (score > maxScore) maxScore = score;
   }
 
   if (semanticsNB) {
@@ -86,11 +89,14 @@ export function updateScore(
     dom.scoreNB.bar.style.width = `${pct}%`;
     dom.scoreNB.value.textContent = score.toFixed(2);
     dom.scoreNB.display.classList.remove("hidden");
+    if (score > maxScore) maxScore = score;
   }
 
   dom.score.target.textContent = `Target: ${currentTarget}`;
   dom.score.target.classList.remove("hidden");
   dom.score.target.style.display = showTarget ? "" : "none";
+
+  return maxScore;
 }
 
 /** Hide predictions, debug preview, and score display. */
