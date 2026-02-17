@@ -47,7 +47,7 @@ async function runInference(): Promise<void> {
     const strokes = drawingCanvas.getStrokes();
     updateDebugPreview(strokes);
     const results: Prediction[] = await predict(strokes);
-    renderPredictions(results, currentTarget, showDistanceBars, semanticsGlove);
+    renderPredictions(results, currentTarget, showDistanceBars, semanticsGlove, semanticsNB);
     if (semanticsGlove || semanticsNB) {
       updateScore(results, currentTarget, showTarget, semanticsGlove, semanticsNB);
     }
