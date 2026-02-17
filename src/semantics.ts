@@ -31,6 +31,11 @@ export function isDistancesLoaded(): boolean {
   return wordIndex !== null;
 }
 
+/** Return the list of available words from the distance matrix. */
+export function getWords(): readonly string[] {
+  return wordIndex ? [...wordIndex.keys()] : [];
+}
+
 /**
  * Upper-triangle index for pair (i, j) where i < j.
  * The flat array stores row-by-row: row 0 has (n-1) entries, row 1 has (n-2), etc.

@@ -2,7 +2,7 @@ import "./style.css";
 import { DrawingCanvas } from "./canvas";
 import { exportAsImage } from "./utils";
 import { loadModel, predict, isModelLoaded, getPreprocessedImage, type Prediction } from "./recognizer";
-import { loadDistances, isDistancesLoaded, getWeightedScore, getDistance } from "./semantics";
+import { loadDistances, isDistancesLoaded, getWeightedScore, getDistance, getWords } from "./semantics";
 
 function qs<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -21,9 +21,13 @@ const scoreDisplay = qs<HTMLDivElement>("#score-display");
 const scoreBar = qs<HTMLDivElement>("#score-bar");
 const scoreValue = qs<HTMLSpanElement>("#score-value");
 const scoreTarget = qs<HTMLParagraphElement>("#score-target");
+const toggleDistance = qs<HTMLInputElement>("#toggle-distance");
+const toggleTarget = qs<HTMLInputElement>("#toggle-target");
+const btnNewWord = qs<HTMLButtonElement>("#btn-new-word");
 
-/** Temporary test target word — will come from game logic in M4. */
-const DEBUG_TARGET = "duck";
+let currentTarget = "duck";
+let showDistanceBars = false;
+let showTarget = false;
 
 const drawingCanvas = new DrawingCanvas(canvasEl);
 
@@ -32,6 +36,36 @@ btnClear.addEventListener("click", () => {
   clearPredictions();
 });
 btnExport.addEventListener("click", () => exportAsImage(canvasEl));
+
+toggleDistance.addEventListener("change", () => {
+  showDistanceBars = toggleDistance.checked;
+  // Re-render if predictions are visible
+  document.querySelectorAll<HTMLDivElement>(".distance-row").forEach((el) => {
+    el.style.display = showDistanceBars ? "" : "none";
+  });
+  scoreDisplay.classList.toggle("hidden", !showDistanceBars);
+});
+
+toggleTarget.addEventListener("change", () => {
+  showTarget = toggleTarget.checked;
+  scoreTarget.style.display = showTarget ? "" : "none";
+});
+
+btnNewWord.addEventListener("click", () => {
+  const words = getWords();
+  if (words.length === 0) return;
+  let next: string;
+  do {
+    next = words[Math.floor(Math.random() * words.length)];
+  } while (next === currentTarget && words.length > 1);
+  currentTarget = next;
+  scoreTarget.textContent = `Target: ${currentTarget}`;
+  // Re-run inference with new target if there are strokes
+  clearTimeout(debounceTimer);
+  if (drawingCanvas.getStrokes().length > 0) {
+    debounceTimer = window.setTimeout(runInference, 0);
+  }
+});
 
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "z") {
@@ -80,7 +114,7 @@ function renderPredictions(predictions: Prediction[]): void {
 
   for (const p of predictions) {
     const pct = (p.probability * 100).toFixed(1);
-    const dist = getDistance(p.label, DEBUG_TARGET);
+    const dist = getDistance(p.label, currentTarget);
     const distPct = (dist * 100).toFixed(1);
     const li = document.createElement("li");
     li.className = "flex items-center gap-2 text-sm";
@@ -93,7 +127,7 @@ function renderPredictions(predictions: Prediction[]): void {
           </div>
           <span class="w-12 text-right tabular-nums text-gray-400">${pct}%</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="distance-row flex items-center gap-2" style="${showDistanceBars ? "" : "display:none"}">
           <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-700">
             <div class="absolute inset-y-0 left-0 rounded-full bg-amber-500" style="width:${distPct}%"></div>
           </div>
@@ -114,12 +148,13 @@ function updateDebugPreview(strokes: ReadonlyArray<Readonly<import("./canvas").S
 }
 
 function updateScore(predictions: Prediction[]): void {
-  const score = getWeightedScore(predictions, DEBUG_TARGET);
+  const score = getWeightedScore(predictions, currentTarget);
   const pct = (score * 100).toFixed(1);
   scoreBar.style.width = `${pct}%`;
   scoreValue.textContent = score.toFixed(2);
-  scoreTarget.textContent = `Target: ${DEBUG_TARGET}`;
-  scoreDisplay.classList.remove("hidden");
+  scoreTarget.textContent = `Target: ${currentTarget}`;
+  scoreTarget.style.display = showTarget ? "" : "none";
+  scoreDisplay.classList.toggle("hidden", !showDistanceBars);
 }
 
 function clearPredictions(): void {

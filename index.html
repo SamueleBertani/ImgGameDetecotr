@@ -9,6 +9,20 @@
     <div id="app" class="flex h-full flex-col">
       <header class="flex items-center gap-2 border-b border-gray-800 px-4 py-2">
         <h1 class="mr-auto text-lg font-bold">Sketch Detector</h1>
+        <label class="flex items-center gap-1.5 text-sm text-gray-400">
+          <input id="toggle-distance" type="checkbox" class="accent-amber-500" />
+          Distance
+        </label>
+        <label class="flex items-center gap-1.5 text-sm text-gray-400">
+          <input id="toggle-target" type="checkbox" class="accent-amber-500" />
+          Target
+        </label>
+        <button
+          id="btn-new-word"
+          class="rounded bg-amber-600 px-3 py-1 text-sm font-medium hover:bg-amber-500"
+        >
+          New Word
+        </button>
         <button
           id="btn-clear"
           class="rounded bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
