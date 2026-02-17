@@ -1,4 +1,4 @@
-import { SIGMOID_K, SIGMOID_CENTER } from "./config";
+import { SIGMOID_K } from "./config";
 import type { Prediction } from "./types";
 
 interface DistanceData {
@@ -8,8 +8,8 @@ interface DistanceData {
 
 /**
  * Pre-computed semantic distance matrix between drawing categories.
- * Uses cosine similarity rescaled via min-max normalization and a
- * sigmoid curve for better visual spread.
+ * Uses cosine similarity rescaled via min-max normalization and an
+ * adaptive sigmoid curve (center = median of rescaled data).
  */
 export class SemanticDistance {
   private wordIndex: Map<string, number>;
@@ -17,6 +17,7 @@ export class SemanticDistance {
   private wordCount: number;
   private distMin: number;
   private distMax: number;
+  private sigmoidCenter: number;
   private sigmoidS0: number;
   private sigmoidS1: number;
 
@@ -27,9 +28,15 @@ export class SemanticDistance {
     this.distMin = Math.min(...this.distArray);
     this.distMax = Math.max(...this.distArray);
 
+    // Compute adaptive center from median of rescaled values
+    const range = this.distMax - this.distMin || 1;
+    const rescaled = this.distArray.map((v) => (v - this.distMin) / range);
+    rescaled.sort((a, b) => a - b);
+    this.sigmoidCenter = rescaled[Math.floor(rescaled.length / 2)];
+
     // Pre-compute sigmoid boundary values
-    this.sigmoidS0 = 1 / (1 + Math.exp(-SIGMOID_K * (0 - SIGMOID_CENTER)));
-    this.sigmoidS1 = 1 / (1 + Math.exp(-SIGMOID_K * (1 - SIGMOID_CENTER)));
+    this.sigmoidS0 = 1 / (1 + Math.exp(-SIGMOID_K * (0 - this.sigmoidCenter)));
+    this.sigmoidS1 = 1 / (1 + Math.exp(-SIGMOID_K * (1 - this.sigmoidCenter)));
   }
 
   /** Fetch a distance matrix JSON from the server and build the index. */
@@ -78,7 +85,7 @@ export class SemanticDistance {
 
   /** Sigmoid remapped so that f(0)=0 and f(1)=1. */
   private sigmoidNorm(x: number): number {
-    const s = 1 / (1 + Math.exp(-SIGMOID_K * (x - SIGMOID_CENTER)));
+    const s = 1 / (1 + Math.exp(-SIGMOID_K * (x - this.sigmoidCenter)));
     return (s - this.sigmoidS0) / (this.sigmoidS1 - this.sigmoidS0);
   }
 }

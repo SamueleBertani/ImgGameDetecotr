@@ -24,9 +24,8 @@ export const TOP_N = 5;
 /** Padding around the bounding box as a fraction of the box size. */
 export const BBOX_PAD = 0.15;
 
-/** Sigmoid curve tuning for semantic distance normalization. */
+/** Sigmoid steepness for semantic distance normalization (center is adaptive). */
 export const SIGMOID_K = 10;
-export const SIGMOID_CENTER = 0.65;
 
 /** Debounce delay (ms) before running inference after a stroke. */
 export const INFERENCE_DEBOUNCE_MS = 300;
