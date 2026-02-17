@@ -1,5 +1,5 @@
-import getStroke from "perfect-freehand";
-import { drawStroke } from "./utils";
+import { renderStroke } from "./strokeRenderer";
+import { DISPLAY_STROKE } from "./config";
 
 export interface Point {
   x: number;
@@ -20,11 +20,9 @@ export class DrawingCanvas {
   private strokes: Stroke[] = [];
   private currentPoints: Point[] = [];
   private drawing = false;
-  private readonly _strokeSize = 20;
 
   onStrokeEnd?: () => void;
 
-  /** Return a read-only copy of completed strokes (CSS-pixel coords). */
   getStrokes(): ReadonlyArray<Readonly<Stroke>> {
     return this.strokes;
   }
@@ -105,7 +103,7 @@ export class DrawingCanvas {
     if (this.currentPoints.length > 0) {
       const stroke: Stroke = {
         points: [...this.currentPoints],
-        size: this._strokeSize,
+        size: DISPLAY_STROKE.size,
       };
       this.strokes.push(stroke);
       this.bakeStroke(stroke);
@@ -118,11 +116,7 @@ export class DrawingCanvas {
 
   private bakeStroke(stroke: Stroke): void {
     this.committedCtx.fillStyle = "#ffffff";
-    const outlinePoints = getStroke(
-      stroke.points.map((p) => [p.x, p.y, p.pressure]),
-      { size: stroke.size, smoothing: 0.5, thinning: 0.5, streamline: 0.5 },
-    );
-    drawStroke(this.committedCtx, outlinePoints);
+    renderStroke(this.committedCtx, stroke.points, { ...DISPLAY_STROKE, size: stroke.size });
   }
 
   private rebakeCommitted(): void {
@@ -134,11 +128,7 @@ export class DrawingCanvas {
     this.committedCtx.fillStyle = "#ffffff";
 
     for (const stroke of this.strokes) {
-      const outlinePoints = getStroke(
-        stroke.points.map((p) => [p.x, p.y, p.pressure]),
-        { size: stroke.size, smoothing: 0.5, thinning: 0.5, streamline: 0.5 },
-      );
-      drawStroke(this.committedCtx, outlinePoints);
+      renderStroke(this.committedCtx, stroke.points, { ...DISPLAY_STROKE, size: stroke.size });
     }
   }
 
@@ -153,16 +143,7 @@ export class DrawingCanvas {
 
     if (this.currentPoints.length > 0) {
       this.ctx.fillStyle = "#ffffff";
-      const outlinePoints = getStroke(
-        this.currentPoints.map((p) => [p.x, p.y, p.pressure]),
-        {
-          size: this._strokeSize,
-          smoothing: 0.5,
-          thinning: 0.5,
-          streamline: 0.5,
-        },
-      );
-      drawStroke(this.ctx, outlinePoints);
+      renderStroke(this.ctx, this.currentPoints, DISPLAY_STROKE);
     }
   }
 }

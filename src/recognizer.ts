@@ -1,23 +1,11 @@
 import * as tf from "@tensorflow/tfjs";
-import getStroke from "perfect-freehand";
 import { LABELS } from "./labels";
-import { drawStroke } from "./utils";
+import { renderStroke } from "./strokeRenderer";
+import { MODEL_URL, INPUT_SIZE, TOP_N, BBOX_PAD, MODEL_STROKE } from "./config";
 import type { Stroke } from "./canvas";
+import type { Prediction } from "./semantics";
 
-export interface Prediction {
-  label: string;
-  probability: number;
-}
-
-const MODEL_URL = "/models/doodlenet/model.json";
-const INPUT_SIZE = 28;
-const TOP_N = 5;
-
-/** Padding around the bounding box as a fraction of the box size. */
-const BBOX_PAD = 0.15;
-
-/** Stroke size used when re-rendering at 28x28 (matches QuickDraw ~1px). */
-const MODEL_STROKE_SIZE = 1.5;
+export type { Prediction };
 
 let model: tf.LayersModel | null = null;
 
@@ -29,10 +17,6 @@ export function isModelLoaded(): boolean {
   return model !== null;
 }
 
-/**
- * Find the bounding box of stroke points (CSS-pixel coordinates).
- * Returns null if there are no points.
- */
 function findStrokeBBox(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): { minX: number; minY: number; maxX: number; maxY: number } | null {
@@ -55,18 +39,12 @@ function findStrokeBBox(
   return found ? { minX, minY, maxX, maxY } : null;
 }
 
-/**
- * Render strokes directly onto a 28x28 OffscreenCanvas.
- * Points are mapped from their bounding box to fill the target area
- * with padding, and drawn with a thin stroke matching QuickDraw data.
- */
 function renderStrokesAt28(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): OffscreenCanvas {
   const canvas = new OffscreenCanvas(INPUT_SIZE, INPUT_SIZE);
   const ctx = canvas.getContext("2d")!;
 
-  // Black background (QuickDraw convention)
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, INPUT_SIZE, INPUT_SIZE);
 
@@ -76,9 +54,7 @@ function renderStrokesAt28(
   const bw = bbox.maxX - bbox.minX || 1;
   const bh = bbox.maxY - bbox.minY || 1;
 
-  // Effective area after padding
-  const pad = BBOX_PAD;
-  const available = INPUT_SIZE * (1 - pad * 2);
+  const available = INPUT_SIZE * (1 - BBOX_PAD * 2);
   const scale = Math.min(available / bw, available / bh);
   const offsetX = (INPUT_SIZE - bw * scale) / 2;
   const offsetY = (INPUT_SIZE - bh * scale) / 2;
@@ -86,20 +62,12 @@ function renderStrokesAt28(
   ctx.fillStyle = "#ffffff";
 
   for (const stroke of strokes) {
-    const mappedPoints = stroke.points.map((p) => [
-      (p.x - bbox.minX) * scale + offsetX,
-      (p.y - bbox.minY) * scale + offsetY,
-      p.pressure,
-    ]);
-
-    const outlinePoints = getStroke(mappedPoints, {
-      size: MODEL_STROKE_SIZE,
-      smoothing: 0.5,
-      thinning: 0,
-      streamline: 0.5,
-    });
-
-    drawStroke(ctx, outlinePoints);
+    const mapped = stroke.points.map((p) => ({
+      x: (p.x - bbox.minX) * scale + offsetX,
+      y: (p.y - bbox.minY) * scale + offsetY,
+      pressure: p.pressure,
+    }));
+    renderStroke(ctx, mapped, MODEL_STROKE);
   }
 
   return canvas;
@@ -122,9 +90,6 @@ function preprocessStrokes(
   });
 }
 
-/**
- * Return the 28x28 preprocessed ImageData so callers can render a debug view.
- */
 export function getPreprocessedImage(
   strokes: ReadonlyArray<Readonly<Stroke>>,
 ): ImageData {
