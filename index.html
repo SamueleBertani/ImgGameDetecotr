@@ -39,16 +39,16 @@
 
       <main class="flex min-h-0 flex-1">
         <!-- Left half: square drawing canvas -->
-        <div class="flex items-center justify-center w-1/4 p-4">
+        <div class="flex items-center justify-center w-1/2 p-4">
           <div class="aspect-square h-full max-w-full relative rounded-lg border border-gray-800 overflow-hidden">
             <canvas id="drawing-canvas" class="absolute inset-0 h-full w-full touch-none"></canvas>
           </div>
         </div>
 
         <!-- Right half: preview + predictions -->
-        <div class="flex w-3/4 flex-col">
+        <div class="flex w-1/2 flex-col">
           <!-- Top-right: debug preview -->
-          <div id="debug-preview" class="flex-1 flex-col items-center justify-center border-b border-gray-800 p-4 hidden">
+          <div id="debug-preview" class="basis-1/4 shrink-0 flex-col items-center justify-center border-b border-gray-800 p-4 hidden">
             <p class="mb-2 text-xs text-gray-500">Model input (28x28)</p>
             <canvas id="debug-canvas" width="28" height="28" class="h-32 w-32 rounded border border-gray-700" style="image-rendering:pixelated"></canvas>
           </div>
