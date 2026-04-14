@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0f19"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g opacity="0.08">
+    <circle cx="1040" cy="120" r="260" fill="#f59e0b"/>
+    <circle cx="180" cy="520" r="220" fill="#06b6d4"/>
+  </g>
+
+  <!-- Sketch illustration -->
+  <g transform="translate(90,150)" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <rect x="0" y="0" width="340" height="340" rx="20" stroke="#1f2937"/>
+    <path d="M60 220 Q120 90 180 200 T300 160"/>
+    <circle cx="300" cy="160" r="10" fill="#06b6d4" stroke="none"/>
+    <path d="M70 280 L270 280" stroke="#374151"/>
+  </g>
+
+  <!-- Text -->
+  <g transform="translate(500,220)">
+    <text x="0" y="0" font-size="92" font-weight="800" fill="#ffffff">Sketch Detector</text>
+    <rect x="0" y="28" width="560" height="6" rx="3" fill="url(#acc)"/>
+    <text x="0" y="110" font-size="34" font-weight="500" fill="#9ca3af">Draw it. Let the AI guess.</text>
+    <text x="0" y="160" font-size="28" fill="#6b7280">Neural net + GloVe &amp; Numberbatch semantic scoring</text>
+  </g>
+</svg>
