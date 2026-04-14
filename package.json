@@ -2,6 +2,7 @@
   "name": "img-game-detector",
   "private": true,
   "version": "1.0.0",
+  "description": "Sketch Detector — a reverse-Pictionary drawing game scored by a TensorFlow.js CNN and semantic similarity (GloVe + ConceptNet Numberbatch). Runs entirely in the browser.",
   "type": "module",
   "scripts": {
     "dev": "vite",
