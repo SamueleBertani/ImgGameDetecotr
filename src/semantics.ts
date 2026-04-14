@@ -42,6 +42,9 @@ export class SemanticDistance {
   /** Fetch a distance matrix JSON from the server and build the index. */
   static async load(url: string): Promise<SemanticDistance> {
     const resp = await fetch(url);
+    if (!resp.ok) {
+      throw new Error(`Failed to load ${url}: ${resp.status} ${resp.statusText}`);
+    }
     const data: DistanceData = await resp.json();
     return new SemanticDistance(data);
   }
