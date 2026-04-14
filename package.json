@@ -3,6 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "description": "Sketch Detector — a reverse-Pictionary drawing game scored by a TensorFlow.js CNN and semantic similarity (GloVe + ConceptNet Numberbatch). Runs entirely in the browser.",
+  "license": "MIT",
+  "author": "Samuele Bertani",
   "type": "module",
   "scripts": {
     "dev": "vite",
