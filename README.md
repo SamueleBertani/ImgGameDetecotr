@@ -1,5 +1,7 @@
 # Sketch Detector
 
+**Live:** [sketchdetector.strumentopoli.it](https://sketchdetector.strumentopoli.it)
+
 A reverse-Pictionary game. You get a secret word, you draw, and the AI tries to read your mind — in real time, entirely in the browser.
 
 Unlike the Google "Quick, Draw!" demo, here the CNN's job isn't to guess the word; it's to *describe what you drew*. A second layer then measures how **semantically close** that description is to the target. Draw a horse when the word is "duck" and the thermometer stays cold; draw a bird and it starts climbing, even before the network gets "duck" at the top of the list.
@@ -80,11 +82,9 @@ scripts/
   generate_distances_numberbatch.py  regenerate Numberbatch matrix
 ```
 
-Relevant design notes live in [`GAME_DESIGN.md`](GAME_DESIGN.md); the build-up is tracked in [`ROADMAP.md`](ROADMAP.md).
-
 ## Deployment
 
-Static SPA, no backend. Deployed on Vercel — zero config, it builds `dist/` and serves from root. Any other static host works: run `npm run build`, upload `dist/`.
+Static SPA, no backend. Deployed on Vercel at [sketchdetector.strumentopoli.it](https://sketchdetector.strumentopoli.it) — zero config, it builds `dist/` from `npm run build` and serves from root. Any other static host works the same way: build, upload `dist/`.
 
 ## License
 
