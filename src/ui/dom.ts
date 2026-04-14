@@ -13,6 +13,7 @@ export const dom = {
     clear: qs<HTMLButtonElement>("#btn-clear"),
     export: qs<HTMLButtonElement>("#btn-export"),
     newWord: qs<HTMLButtonElement>("#btn-new-word"),
+    help: qs<HTMLButtonElement>("#btn-help"),
   },
 
   toggles: {

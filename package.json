@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
+    "driver.js": "^1.4.0",
     "perfect-freehand": "^1.2.3"
   }
 }

@@ -15,6 +15,7 @@ import {
   showModelReady,
   showModelError,
 } from "./ui/renderer";
+import { startTour, maybeStartTourOnFirstVisit } from "./ui/tour";
 
 // --- State ---
 
@@ -74,6 +75,8 @@ dom.buttons.clear.addEventListener("click", () => {
 
 dom.buttons.export.addEventListener("click", () => exportAsImage(dom.canvas));
 
+dom.buttons.help.addEventListener("click", () => startTour());
+
 dom.toggles.distance.addEventListener("change", () => {
   showDistanceBars = dom.toggles.distance.checked;
   toggleDistanceRows(showDistanceBars);
@@ -127,3 +130,5 @@ Promise.all([
     showModelReady();
   })
   .catch(() => showModelError());
+
+maybeStartTourOnFirstVisit();
