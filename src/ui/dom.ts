@@ -44,4 +44,12 @@ export const dom = {
     bar: qs<HTMLDivElement>("#score-bar-nb"),
     value: qs<HTMLSpanElement>("#score-value-nb"),
   },
+
+  winModal: {
+    root: qs<HTMLDivElement>("#win-modal"),
+    word: qs<HTMLParagraphElement>("#win-word"),
+    time: qs<HTMLParagraphElement>("#win-time"),
+    newWord: qs<HTMLButtonElement>("#win-new-word"),
+    close: qs<HTMLButtonElement>("#win-close"),
+  },
 } as const;

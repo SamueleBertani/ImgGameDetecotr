@@ -129,3 +129,17 @@ export function showModelError(): void {
   dom.status.textContent = "Model failed to load";
   dom.status.classList.replace("text-gray-400", "text-red-400");
 }
+
+/** Show the win modal with the target word and elapsed seconds. */
+export function showWinModal(word: string, seconds: number): void {
+  dom.winModal.word.textContent = `The word was "${word}".`;
+  dom.winModal.time.textContent = `Time used: ${seconds}s`;
+  dom.winModal.root.classList.remove("hidden");
+  dom.winModal.root.classList.add("flex");
+}
+
+/** Hide the win modal. */
+export function hideWinModal(): void {
+  dom.winModal.root.classList.add("hidden");
+  dom.winModal.root.classList.remove("flex");
+}

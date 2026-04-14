@@ -14,6 +14,8 @@ import {
   toggleDistanceRows,
   showModelReady,
   showModelError,
+  showWinModal,
+  hideWinModal,
 } from "./ui/renderer";
 import { startTour, maybeStartTourOnFirstVisit } from "./ui/tour";
 
@@ -56,7 +58,7 @@ async function runInference(): Promise<void> {
       if (!hasWon && maxScore >= 0.9) {
         hasWon = true;
         const elapsed = Math.round((Date.now() - roundStartTime) / 1000);
-        alert(`Win, yuppy! The word was ${currentTarget}. Time used: ${elapsed}s`);
+        showWinModal(currentTarget, elapsed);
       }
     }
   } finally {
@@ -87,7 +89,7 @@ dom.toggles.target.addEventListener("change", () => {
   dom.score.target.style.display = showTarget ? "" : "none";
 });
 
-dom.buttons.newWord.addEventListener("click", () => {
+function pickNewWord(): void {
   const source = semanticsGlove ?? semanticsNB;
   if (!source) return;
   const words = source.getWords();
@@ -101,6 +103,19 @@ dom.buttons.newWord.addEventListener("click", () => {
   roundStartTime = Date.now();
   dom.score.target.textContent = `Target: ${currentTarget}`;
   scheduleInference(0);
+}
+
+dom.buttons.newWord.addEventListener("click", pickNewWord);
+
+dom.winModal.newWord.addEventListener("click", () => {
+  hideWinModal();
+  pickNewWord();
+});
+
+dom.winModal.close.addEventListener("click", hideWinModal);
+
+dom.winModal.root.addEventListener("click", (e) => {
+  if (e.target === dom.winModal.root) hideWinModal();
 });
 
 document.addEventListener("keydown", (e) => {
