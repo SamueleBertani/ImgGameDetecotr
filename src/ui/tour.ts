@@ -135,6 +135,7 @@ export function startTour(): void {
   const d = driver({
     showProgress: true,
     allowClose: true,
+    popoverClass: "sketch-tour",
     steps: buildSteps(),
     onDestroyed: () => {
       restorePreview();
